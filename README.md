@@ -1,6 +1,6 @@
 # 🤖 ClapTrap – Voice-Controlled Assistant Inspired by Borderlands
 
-**ClapTrap** (aka _"Железяка"_) is an open-source prototype of an intelligent voice-controlled assistant, inspired by the iconic robot from the Borderlands video game series. This assistant is designed for **audio-driven system control**, with support for **speech recognition**, **text-to-speech**, and future **camera-based user authentication**.
+**ClapTrap** (aka _"Железяка"_) is an open-source prototype of an intelligent voice-controlled assistant, inspired by the iconic robot from the Borderlands video game series. This assistant is designed for **all system control**, with support for **speech recognition**, **audio-driven system control**,**text-to-speech**, and future **camera-based user authentication**.
 
 ---
 
