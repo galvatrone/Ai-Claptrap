@@ -44,6 +44,7 @@ git clone https://github.com/yourname/claptrap.git
 cd claptrap
 pip install -r requirements.txt
 python main.py
+exit
 
 ---
 
