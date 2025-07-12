@@ -44,7 +44,7 @@ git clone https://github.com/yourname/claptrap.git
 cd claptrap
 pip install -r requirements.txt
 python main.py
-exit
+```
 
 ---
 
@@ -60,7 +60,7 @@ claptrap/
 ├── main.py               # Main launch script
 ├── requirements.txt
 └── README.md
-
+```
 Make sure to download and place Vosk models inside the vosk_models/ directory.
 
 ---
@@ -73,3 +73,14 @@ ClapTrap is not just a toy assistant. The long-term vision includes:
 -Personalized responses based on face and voice recognition
 -Full offline control and autonomy
 -Seamless expansion to smart devices, robotics, or embedded systems
+
+---
+
+## 📝 License
+This project is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License.
+You are free to use, modify, and distribute this work, even commercially, as long as you give appropriate credit.
+More info: https://creativecommons.org/licenses/by/4.0/
+
+## 🎮 Inspired by
+"Look at me! I'm dancing! I'm dancing!"
+— Claptrap, Borderlands
