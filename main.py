@@ -40,9 +40,9 @@ thread.start()
 def process_command(cmd):
     cmd = cmd.lower()
 
-    if "пока" in cmd:
-        print("⛔ Завершаем")
-        tts.va_speak("До свидания!")
+    if "завершить процесс" in cmd:
+        print({"message": "Завершение работы по команде 'пока'."} )
+        tts.va_speak("Выполняю протокол завершения работы")
         
 
     elif "привет" in cmd:
