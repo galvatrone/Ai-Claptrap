@@ -1,0 +1,11 @@
+# For audio input/output with the microphone and speakers
+sounddevice>=0.4.6
+
+# For offline speech recognition (Vosk models)
+vosk>=0.3.45
+
+# For deep learning and loading Silero TTS model
+torch>=2.0.0
+
+# Required by torch/sounddevice for numerical operations
+numpy>=1.21.0

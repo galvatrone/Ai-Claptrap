@@ -1,0 +1,33 @@
+# Исключаем все модели
+Vosk_models/*
+!Vosk_models/.gitkeep
+
+# Исключаем модели других TTS или Vosk
+*.pt
+*.zip
+*.onnx
+*.pb
+*.nemo
+*.npz
+*.bin
+
+# Общие временные и кэш-файлы
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.tmp
+*.cache/
+.cache/
+
+# Исключаем виртуальное окружение
+venv/
+env/
+
+# Исключаем IDE-файлы
+.vscode/
+.idea/
+
+# Исключаем скрытые системные файлы
+.DS_Store
+Thumbs.db

@@ -16,8 +16,8 @@ def load_model(language_code):
         return vosk.Model("model_en")
     elif language_code == "ru":
         return vosk.Model("model_ru" or "model_ru_v3")
-    elif language_code == "de":
-        return vosk.Model("model_de")
+    elif language_code == "gr":
+        return vosk.Model("model_gr")
     else:
         raise ValueError("Язык не поддерживается")
 
