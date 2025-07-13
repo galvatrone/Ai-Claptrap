@@ -4,13 +4,16 @@ import vosk # Библиотека для распознавания речи
 import json # Для работы с JSON-данными
 import re # Регулярные выражения для обработки текста
 import time # Для работы со временем
+
 # import sys
 # import os
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # from config import VA_ALIAS  # filepath: d:\Python\New-Voice\stt\recognize.py
 VA_ALIAS_RU = ("приём",'железяка',"робот","жестянка","железный человек","железяка привет","клапт","клаптрап","клап трап")
 VA_ALIAS_EN = ("nine","claptrap","clap-trap","ClapTrap","clap trap","jeleziaka","jelezo")
-SILENCE_TIMEOUT = 4  # секунд
+
+
+result_queue = queue.Queue()  # Очередь для результатов распознавания
 
 def load_model(language_code):
     if language_code == "en":
@@ -41,90 +44,89 @@ def split_sentences(text):
     # Простая сегментация на предложения
     return re.findall(r'[^.!?]*[.!?]', text, re.DOTALL)
 
-def recognize():
-    print("🎤 Говорите... (нажмите Ctrl+C для остановки)")
+# def recognize():
+#     print("🎤 Говорите... (нажмите Ctrl+C для остановки)")
 
-    with sd.RawInputStream(samplerate=16000, blocksize=8000,
-                           dtype='int16', channels=1, callback=callback):
+#     with sd.RawInputStream(samplerate=16000, blocksize=8000,
+#                            dtype='int16', channels=1, callback=callback):
 
-        rec = vosk.KaldiRecognizer(vosk_model, 16000)
+#         rec = vosk.KaldiRecognizer(vosk_model, 16000)
 
         
 
-        is_active = False  # Ассистент "спит"
-        buffer = ""
-        full_text = ""
-        last_voice_time = time.time()  # Таймер для отслеживания тишины
-        try:
-            while True:
-                data = q.get()
-                if rec.AcceptWaveform(data):
-                    result = json.loads(rec.Result())
-                    part = result.get("text", "")
+#         is_active = False  # Ассистент "спит"
+#         buffer = ""
+#         full_text = ""
+#         last_voice_time = time.time()  # Таймер для отслеживания тишины
+#         try:
+#             while True:
+#                 data = q.get()
+#                 if rec.AcceptWaveform(data):
+#                     result = json.loads(rec.Result())
+#                     part = result.get("text", "")
 
-                    if not is_active:
-                        continue  # Не активирован — игнорируем текст
+#                     if not is_active:
+#                         continue  # Не активирован — игнорируем текст
 
-                    # Удаляем слово активации из начала распознанного текста
-                    for alias in VA_ALIAS_RU or VA_ALIAS_EN:
-                        if part.lower().startswith(alias):
-                            part = part[len(alias):].lstrip()
-                            break
+#                     # Удаляем слово активации из начала распознанного текста
+#                     for alias in VA_ALIAS_RU or VA_ALIAS_EN:
+#                         if part.lower().startswith(alias):
+#                             part = part[len(alias):].lstrip()
+#                             break
 
-                    if part:
+#                     if part:
 
-                        part += "."
-                        buffer = " " + part
+#                         part += "."
+#                         buffer = " " + part
 
-                        # sentences = split_sentences(buffer)
+#                         # sentences = split_sentences(buffer)
 
-                        # for s in sentences[:-1]:
-                        #     s_clean = s.strip()
-                        #     if s_clean:
-                        #         print("📥 1Отправка в LLM:", s_clean)
-                        #         # process_with_llm(s_clean)
+#                         # for s in sentences[:-1]:
+#                         #     s_clean = s.strip()
+#                         #     if s_clean:
+#                         #         print("📥 1Отправка в LLM:", s_clean)
+#                         #         # process_with_llm(s_clean)
                                 
-                        print("📥 Отправка в LLM:", part)
-                        return part.strip()
-                        # process_with_llm(s_clean)
-                        # buffer = sentences[-1] if sentences else ""
-                        full_text += " " + buffer.strip()
+#                         print("📥 Отправка в LLM:", part)
+#                         return part.strip()
+#                         # process_with_llm(s_clean)
+#                         # buffer = sentences[-1] if sentences else ""
+#                         full_text += " " + buffer.strip()
 
-                        print("📝 Остаток в буфере:", buffer.strip())
-                else:
-                    partial = json.loads(rec.PartialResult()).get("partial", "")
-                    if not is_active:
-                        if any(word in partial.lower() for word in VA_ALIAS_RU or VA_ALIAS_EN):
-                            print("👂 Ключевое слово распознано — активация ассистента.")
-                            is_active = True
-                            partial= ""
-                            last_voice_time = time.time()
-                    else:
-                        if partial:
-                            last_voice_time = time.time()  # обновляем таймер на звук
-                            print("🧪 Говорится:", partial)
+#                         print("📝 Остаток в буфере:", buffer.strip())
+#                 else:
+#                     partial = json.loads(rec.PartialResult()).get("partial", "")
+#                     if not is_active:
+#                         if any(word in partial.lower() for word in VA_ALIAS_RU or VA_ALIAS_EN):
+#                             print("👂 Ключевое слово распознано — активация ассистента.")
+#                             is_active = True
+#                             partial= ""
+#                             last_voice_time = time.time()
+#                     else:
+#                         if partial:
+#                             last_voice_time = time.time()  # обновляем таймер на звук
+#                             print("🧪 Говорится:", partial)
 
-                # Проверка таймаута тишины
-                if is_active and (time.time() - last_voice_time > SILENCE_TIMEOUT):
-                    print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
-                    is_active = False
-                    buffer = ""
-                    print("📥 [ФИНАЛ] Отправка полного текста в LLM:", full_text.strip())
-                    return full_text.strip()
-                    full_text = ""
-                    #process_with_llm(full_text.strip())
+#                 # Проверка таймаута тишины
+#                 if is_active and (time.time() - last_voice_time > SILENCE_TIMEOUT):
+#                     print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
+#                     is_active = False
+#                     buffer = ""
+#                     print("📥 [ФИНАЛ] Отправка полного текста в LLM:", full_text.strip())
+#                     return full_text.strip()
+#                     full_text = ""
+#                     #process_with_llm(full_text.strip())
 
-        except KeyboardInterrupt or ValueError or Exception as err:
-            print("\n⛔ Прервано аварийно:")
-            print(f"Unexpected {err=}, {type(err)=}")
-            if buffer:
-                print("📥 [ФИНАЛ] Отправка остатка в LLM:", buffer.strip())
-                # process_with_llm(buffer.strip())
-            raise
+#         except KeyboardInterrupt or ValueError or Exception as err:
+#             print("\n⛔ Прервано аварийно:")
+#             print(f"Unexpected {err=}, {type(err)=}")
+#             if buffer:
+#                 print("📥 [ФИНАЛ] Отправка остатка в LLM:", buffer.strip())
+#                 # process_with_llm(buffer.strip())
+#             raise
 
 
 def recognize_wake_up():
-    print("🎤 Говорите... (нажмите Ctrl+C для остановки)")
 
     with sd.RawInputStream(samplerate=16000, blocksize=8000,
                            dtype='int16', channels=1, callback=callback):
@@ -149,7 +151,6 @@ def recognize_wake_up():
                     if not is_active:
                         if any(word in partial.lower() for word in VA_ALIAS_RU or VA_ALIAS_EN):
                             is_active=True
-                            print("👂 Ключевое слово распознано — активация ассистента.")
 
         except ValueError or Exception as err:
             print("\n⛔ Прервано аварийно:\n")
@@ -157,20 +158,17 @@ def recognize_wake_up():
             raise
 
 
-def recognize_continuous():
-    print("🎤 Говорите... (нажмите Ctrl+C для остановки)")
 
+
+def recognize_continuous():
     with sd.RawInputStream(samplerate=16000, blocksize=8000,
-                           dtype='int16', channels=1, callback=callback):
+                            dtype='int16', channels=1, callback=callback):
 
         rec = vosk.KaldiRecognizer(vosk_model, 16000)
-
-        
-
-        is_active = False  # Ассистент "спит"
-        buffer = ""
-        full_text = ""
         last_voice_time = time.time()  # Таймер для отслеживания тишины
+        is_active = True  # Ассистент "активен"
+        SILENCE_TIMEOUT = 10  # секунд
+
         try:
             while True:
                 data = q.get()
@@ -179,7 +177,7 @@ def recognize_continuous():
                     part = result.get("text", "")
 
                     if not is_active:
-                        continue  # Не активирован — игнорируем текст
+                        continue
 
                     # Удаляем слово активации из начала распознанного текста
                     for alias in VA_ALIAS_RU or VA_ALIAS_EN:
@@ -188,53 +186,32 @@ def recognize_continuous():
                             break
 
                     if part:
-
                         part += "."
-                        buffer = " " + part
-
-                        # sentences = split_sentences(buffer)
-
-                        # for s in sentences[:-1]:
-                        #     s_clean = s.strip()
-                        #     if s_clean:
-                        #         print("📥 1Отправка в LLM:", s_clean)
-                        #         # process_with_llm(s_clean)
-                                
+                          
                         print("📥 Отправка в LLM:", part)
                         return part.strip()
-                        # process_with_llm(s_clean)
-                        # buffer = sentences[-1] if sentences else ""
-                        full_text += " " + buffer.strip()
+                        # process_with_llm(part.strip())
 
-                        print("📝 Остаток в буфере:", buffer.strip())
                 else:
                     partial = json.loads(rec.PartialResult()).get("partial", "")
-                    if not is_active:
-                        if any(word in partial.lower() for word in VA_ALIAS_RU or VA_ALIAS_EN):
-                            print("👂 Ключевое слово распознано — активация ассистента.")
-                            is_active = True
-                            partial= ""
-                            last_voice_time = time.time()
-                    else:
-                        if partial:
-                            last_voice_time = time.time()  # обновляем таймер на звук
-                            print("🧪 Говорится:", partial)
-
-                # Проверка таймаута тишины
+                    if partial:
+                        last_voice_time= time.time()  # обновляем таймер на звук
+                        print("🧪 Говорится:", partial)
+                
+                #                 # Проверка таймаута тишины
                 if is_active and (time.time() - last_voice_time > SILENCE_TIMEOUT):
                     print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
                     is_active = False
-                    buffer = ""
-                    print("📥 [ФИНАЛ] Отправка полного текста в LLM:", full_text.strip())
-                    return full_text.strip()
-                    full_text = ""
-                    #process_with_llm(full_text.strip())
+                    print("📥 [ФИНАЛ] Отправка полного текста в LLM:", part.strip())
+                    return part.strip()
+#                     #process_with_llm(full_text.strip())
+
 
         except KeyboardInterrupt or ValueError or Exception as err:
             print("\n⛔ Прервано аварийно:")
             print(f"Unexpected {err=}, {type(err)=}")
-            if buffer:
+            if part:
                 print("📥 [ФИНАЛ] Отправка остатка в LLM:", buffer.strip())
-                # process_with_llm(buffer.strip())
+            # process_with_llm(buffer.strip())
             raise
 
