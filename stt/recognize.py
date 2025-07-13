@@ -211,7 +211,7 @@ def recognize_continuous():
             print("\n⛔ Прервано аварийно:")
             print(f"Unexpected {err=}, {type(err)=}")
             if part:
-                print("📥 [ФИНАЛ] Отправка остатка в LLM:", buffer.strip())
+                print("📥 [ФИНАЛ] Отправка остатка в LLM:", part.strip())
             # process_with_llm(buffer.strip())
             raise
 

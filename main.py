@@ -13,7 +13,7 @@ import os
 import yaml
 from fuzzywuzzy import fuzz
 import torch
-im
+
 
 
  
@@ -26,6 +26,7 @@ model = torch.hub.load('snakers4/silero-models', 'silero_tts', language='ru')
  # или 'cuda', если есть GPU
 print("Модель загружена и готова к работе.")
 
+CDIR = os.path.dirname(os.path.abspath(__file__))  # Получаем текущую директорию
 VA_CMD_LIST = yaml.safe_load(
     open(os.path.join(CDIR, 'commands.yaml'), 'rt', encoding='utf8'),
 )
@@ -75,7 +76,7 @@ def process_command(cmd):
     return True
 
 SILENCE_TIMEOUT = 10  # секунд
-
+last_voice_time = time.time() - 1000  # Инициализируем таймер в прошлом, чтобы сразу начать распознавание
 if __name__ == "__main__":
 
     print("🎤 Готов к работе!")
@@ -85,13 +86,14 @@ if __name__ == "__main__":
         try:
             print("🔊 Ожидание активации...")
             attemps = 0
-            last_voice_time = time.time()  # Таймер для отслеживания тишины
+            
 
             if  recognize_wake_up():
                 last_voice_time = time.time()
                 print("🟢 Активация: Да, сэр!")
+                last_voice_time = time.time()  # Таймер для отслеживания тишины
 
-                while time.time() - last_voice_time > SILENCE_TIMEOUT:
+                while (time.time() - last_voice_time <= SILENCE_TIMEOUT):
                     
 
                         text = recognize_continuous()
@@ -110,8 +112,8 @@ if __name__ == "__main__":
 
                             if not process_command(cmd):
                                 attemps += 1
-                                if attemps >= 3:
-                                    break
+                        if attemps >= 2:
+                            break
                                 
                         
                     
