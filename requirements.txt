@@ -9,3 +9,7 @@ torch>=2.0.0
 
 # Required by torch/sounddevice for numerical operations
 numpy>=1.21.0
+
+# For YAML configuration files
+PyYAML>=5.4.1
+
