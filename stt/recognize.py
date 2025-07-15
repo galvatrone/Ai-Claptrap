@@ -144,7 +144,7 @@ def recognize_wake_up():
                     else:
                         #
                         if part:
-                            print("📥 Отправка монолога в LLM для обучения",part.strip())
+                            # print("📥 Отправка монолога в LLM для обучения",part.strip())
                         return True
                 else:
                     partial = json.loads(rec.PartialResult()).get("partial", "")
@@ -188,7 +188,7 @@ def recognize_continuous():
                     if part:
                         part += "."
                           
-                        print("📥 Отправка в LLM:", part)
+                        # print("📥 Отправка в LLM:", part)
                         return part.strip()
                         # process_with_llm(part.strip())
 
@@ -196,13 +196,13 @@ def recognize_continuous():
                     partial = json.loads(rec.PartialResult()).get("partial", "")
                     if partial:
                         last_voice_time= time.time()  # обновляем таймер на звук
-                        print("🧪 Говорится:", partial)
+                        # print("🧪 Говорится:", partial)
                 
                 #                 # Проверка таймаута тишины
                 if is_active and (time.time() - last_voice_time > SILENCE_TIMEOUT):
-                    print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
+                    # print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
                     is_active = False
-                    print("📥 [ФИНАЛ] Отправка полного текста в LLM:", part.strip())
+                    # print("📥 [ФИНАЛ] Отправка полного текста в LLM:", part.strip())
                     return part.strip()
 #                     #process_with_llm(full_text.strip())
 
