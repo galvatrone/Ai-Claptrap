@@ -20,12 +20,16 @@ import simpleaudio as sa
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 from comtypes import CLSCTX_ALL
 from ctypes import cast, POINTER
+from colorama import init, Fore, Style
+init(autoreset=True)
+
+
 
  
  # в будущем можно будет сделать несколько потоков для распознавания речи и обработки команд 
  # чем больше потоков тем больше нагрузка на процессор и память
  # больше пользователей говорят одновремено то больше потоков распознавания разношо голоса 
-
+os.environ['VOSK_LOG_LEVEL'] = '0'
 print("Загрузка TTS модели...")
 model = torch.hub.load('snakers4/silero-models', 'silero_tts', language='ru')
  # или 'cuda', если есть GPU
@@ -99,6 +103,7 @@ def recognize_cmd(cmd: str):
 
 
 def execute_cmd(cmd: str, voice: str):
+
     if cmd == 'open_browser':
         subprocess.Popen([f'{CDIR}\\custom-commands\\Run browser.exe'])
         play("OVER HERE PT2")
@@ -237,7 +242,10 @@ if __name__ == "__main__":
                             pause(0.1)
                             cmd = recognize_cmd(filter_cmd(cmd))
                             print(cmd)
-                            if not execute_cmd(cmd['cmd'],commands):
+                            cmd_obj = {'cmd': cmd['cmd'], 'percent': cmd['percent']}
+
+                            print(f"{Fore.GREEN}command processing:{Style.RESET_ALL} {Fore.CYAN}{cmd_obj['cmd']}{Style.RESET_ALL} | percent: {Fore.MAGENTA}{cmd_obj['percent']}%{Style.RESET_ALL}")
+                            if not execute_cmd(cmd['cmd'],commands) or cmd['percent'] < 70:
                                 attemps += 1
                         if attemps >= 2:
                             break
@@ -247,5 +255,7 @@ if __name__ == "__main__":
         except ValueError or Exception as err:
             print("\n⛔ interrupted emergency:\n")
             print(f"Unexpected {err=}, {type(err)=}")
+            #log.error(f"Unexpected {err=}, {type(err)=}")
+
             raise
                     
