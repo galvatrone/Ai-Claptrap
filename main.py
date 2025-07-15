@@ -3,7 +3,7 @@ from stt.recognize import  recognize_continuous , recognize_wake_up
 import random
 import tts
 
-
+import config
 import queue
 import re
 import time
@@ -40,35 +40,50 @@ VA_CMD_LIST = yaml.safe_load(
 
 
 def play(phrase, wait_done=True):
+    """
+    Воспроизводит .wav файл из папки sound/ по ключевому слову phrase.
+    
+    :param phrase: имя файла без расширения (.wav добавляется автоматически)
+    :param wait_done: True — ждать окончания воспроизведения
+    """
     global recorder
-    filename = f"{CDIR}\\sound\\"
 
-    if phrase == "greet":
-        filename += f"greet{random.choice([1, 2, 3])}.wav"
-    elif phrase == "ok":
-        filename += f"ok{random.choice([1, 2, 3])}.wav"
-    elif phrase == "not_found":
-        filename += "not_found.wav"
-    elif phrase == "thanks":
-        filename += "thanks.wav"
-    elif phrase == "run":
-        filename += "run.wav"
-    elif phrase == "stupid":
-        filename += "stupid.wav"
-    elif phrase == "ready":
-        filename += "ready.wav"
-    elif phrase == "off":
-        filename += "off.wav"
+    # Собираем путь к файлу .wav
+    filename = os.path.join(CDIR, "sound", phrase + ".wav")
 
-    if wait_done:
-        recorder.stop()
+    # Проверяем, существует ли файл
+    if not os.path.isfile(filename):
+        print(f"⚠️ Файл не найден: {filename}")
+        return
 
-    wave_obj = sa.WaveObject.from_wave_file(filename)
-    play_obj = wave_obj.play()
+    try:
+        # Останавливаем запись перед воспроизведением (если нужно)
+        # if wait_done and recorder:
+        #     recorder.stop()
 
-    if wait_done:
-        play_obj.wait_done()
-        recorder.start()
+        wave_obj = sa.WaveObject.from_wave_file(filename)
+        play_obj = wave_obj.play()
+
+        if wait_done:
+            play_obj.wait_done()
+            # recorder.start()
+
+    except Exception as e:
+        print(f"⛔ Error run: {e}")
+
+
+
+
+def filter_cmd(raw_voice: str):
+    cmd = raw_voice
+
+    for x in config.VA_ALIAS:
+        cmd = cmd.replace(x, "").strip()
+
+    for x in config.VA_TBR:
+        cmd = cmd.replace(x, "").strip()
+
+    return cmd
 
 def recognize_cmd(cmd: str):
     rc = {'cmd': '', 'percent': 0}
@@ -86,7 +101,7 @@ def recognize_cmd(cmd: str):
 def execute_cmd(cmd: str, voice: str):
     if cmd == 'open_browser':
         subprocess.Popen([f'{CDIR}\\custom-commands\\Run browser.exe'])
-        play("test")
+        play("OVER HERE PT2")
 
     elif cmd == 'open_youtube':
         subprocess.Popen([f'{CDIR}\\custom-commands\\Run youtube.exe'])
@@ -121,7 +136,7 @@ def execute_cmd(cmd: str, voice: str):
         play("test")
 
     elif cmd == 'sound_off':
-        play("test", True)#ok
+        play("stay-dead-dipshit", True)#ok
         devices = AudioUtilities.GetSpeakers()
         interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
         volume = cast(interface, POINTER(IAudioEndpointVolume))
@@ -132,7 +147,7 @@ def execute_cmd(cmd: str, voice: str):
         interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
         volume = cast(interface, POINTER(IAudioEndpointVolume))
         volume.SetMute(0, None)
-        play("test")# ready
+        play("DEFEND YOU")# ready
 
     elif cmd == 'thanks':
         play("test")
@@ -151,22 +166,26 @@ def execute_cmd(cmd: str, voice: str):
         play("test")#ready
 
     elif cmd == 'switch_to_headphones':
-        play("test")
+        play("DON'T WORRY BABY")
         subprocess.check_call([f'{CDIR}\\custom-commands\\Switch to headphones.exe'])
         time.sleep(0.5)
-        play("test")#ready
+        play("OVER HERE PT2")
 
     elif cmd == 'switch_to_dynamics':
-        play("test")
+        play("DON'T WORRY BABY")
         subprocess.check_call([f'{CDIR}\\custom-commands\\Switch to dynamics.exe'])
         time.sleep(0.5)
-        play("test")# ready
+        play("OVER HERE PT2")
 
-    elif cmd == 'off':
-        play("off", True)
-
+    elif cmd == 'off_assistant':
+        play("I'M GOING TO DIE", True)
         exit(0)
-
+    else :
+        play("I GOT NOTHING")
+        # tts.va_speak(f"неизвестная команда")
+        pause(1)  # Пауза для завершения речи
+        return False
+    return True
     # elif cmd == 'soft_restart':
     #     play("off", True)
     #     porcupine.delete()
@@ -181,57 +200,23 @@ def execute_cmd(cmd: str, voice: str):
     #     play("off", True)
     #     os.system("shutdown /s /t 0")
 
-
-def process_command(cmd):
-    cmd = cmd.lower()# Приводим к нижнему регистру для унификации
-
-    if "завершить процесс" in cmd:
-        print("👋 ")
-        print({"message": "Завершение работы по команде 'пока'."} )
-        tts.va_speak("Выполняю протокол завершения работы")
-        pause(1)  # Пауза для завершения речи
-        exit(0)
-        
-
-    elif "привет" in cmd:
-        print("👋 Привет! Как я могу помочь?")
-        tts.va_speak("Привет! Как я могу помочь?")
-        pause(1)  # Пауза для завершения речи
-
-    elif "включи свет" in cmd:
-        print("💡 Команда: включить свет")
-        tts.va_speak("Включаю свет.")
-        pause(1) # Пауза для завершения речи
-
-    elif "открой окно" in cmd:
-        print("🪟 Команда: открыть окно")
-        tts.va_speak("Открываю окно.")
-        pause(1)  # Пауза для завершения речи
-
-    else:
-        print(f"🤖 Неизвестная команда: {cmd}")
-        tts.va_speak(f"неизвестная команда")
-        pause(1)  # Пауза для завершения речи
-        return False
-    
-    return True
-
 SILENCE_TIMEOUT = 10  # секунд
 last_voice_time = time.time() - 1000  # Инициализируем таймер в прошлом, чтобы сразу начать распознавание
 if __name__ == "__main__":
 
-    print("🎤 Готов к работе!")
-
+    print("🎤 Ready to Work!")
+    play("Hello")  # Воспроизводим приветствие
     while True:
         
         try:
-            print("🔊 Ожидание активации...")
+            print("🔊 waiting for activation...")
             attemps = 0
             
 
             if  recognize_wake_up():
                 last_voice_time = time.time()
-                print("🟢 Активация: Да, сэр!")
+                print("🟢 Activation: Yes, sir!")
+                play("understant")
                 last_voice_time = time.time()  # Таймер для отслеживания тишины
 
                 while (time.time() - last_voice_time <= SILENCE_TIMEOUT):
@@ -242,16 +227,17 @@ if __name__ == "__main__":
                         if not text.strip():
                             continue
                         last_voice_time = time.time() #обновляем таймер на звук
-                        print(f"📥 Получено: {text}")
+                        # print(f"📥 Получено: {text}")
                         # Разбиваем на фразы-предложения
                         commands = [cmd.strip() for cmd in re.split(r'\s+затем\s+|\s+после\s+|\s+и\s+|[.,;!?]', text) if cmd.strip()]  # используем text, а не cmd
 
                         for cmd in commands:
-                            print(f"Обработка команды: {cmd}")
-                            cmd = cmd.lower()  # Приводим к нижнему регистру для унификации
+                            cmd = cmd.lower()# Приводим к нижнему регистру для унификации
+                            print(f"command processing: {cmd}")  
                             pause(0.1)
-
-                            if not process_command(cmd):
+                            cmd = recognize_cmd(filter_cmd(cmd))
+                            print(cmd)
+                            if not execute_cmd(cmd['cmd'],commands):
                                 attemps += 1
                         if attemps >= 2:
                             break
@@ -259,7 +245,7 @@ if __name__ == "__main__":
                         
                     
         except ValueError or Exception as err:
-            print("\n⛔ Прервано аварийно:\n")
+            print("\n⛔ interrupted emergency:\n")
             print(f"Unexpected {err=}, {type(err)=}")
             raise
                     

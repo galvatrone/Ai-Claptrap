@@ -188,7 +188,7 @@ def recognize_continuous():
                     if part:
                         part += "."
                           
-                        print("📥 Отправка в LLM:", part)
+                        # print("📥 Отправка в LLM:", part)
                         return part.strip()
                         # process_with_llm(part.strip())
 
@@ -200,9 +200,9 @@ def recognize_continuous():
                 
                 #                 # Проверка таймаута тишины
                 if is_active and (time.time() - last_voice_time > SILENCE_TIMEOUT):
-                    print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
+                    # print("⏱ Тишина больше", SILENCE_TIMEOUT, "секунд. Завершаем.")
                     is_active = False
-                    print("📥 [ФИНАЛ] Отправка полного текста в LLM:", part.strip())
+                    # print("📥 [ФИНАЛ] Отправка полного текста в LLM:", part.strip())
                     return part.strip()
 #                     #process_with_llm(full_text.strip())
 
