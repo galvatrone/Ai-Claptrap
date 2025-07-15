@@ -143,7 +143,7 @@ def recognize_wake_up():
                         continue
                     else:
                         #
-                        if part:
+                        # if part:
                             # print("📥 Отправка монолога в LLM для обучения",part.strip())
                         return True
                 else:

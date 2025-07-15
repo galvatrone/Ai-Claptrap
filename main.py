@@ -209,18 +209,18 @@ SILENCE_TIMEOUT = 10  # секунд
 last_voice_time = time.time() - 1000  # Инициализируем таймер в прошлом, чтобы сразу начать распознавание
 if __name__ == "__main__":
 
-    print("🎤 Ready to Work!")
+    print("Ready to Work!")
     play("Hello")  # Воспроизводим приветствие
     while True:
         
         try:
-            print("🔊 waiting for activation...")
+            print("waiting for activation...")
             attemps = 0
             
 
             if  recognize_wake_up():
                 last_voice_time = time.time()
-                print("🟢 Activation: Yes, sir!")
+                print(f"{Fore.YELLOW} Activation: Yes, sir!{Style.RESET_ALL}")
                 play("understant")
                 last_voice_time = time.time()  # Таймер для отслеживания тишины
 

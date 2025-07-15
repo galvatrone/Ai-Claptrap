@@ -1,15 +1,32 @@
-# For audio input/output with the microphone and speakers
+# Audio input/output
 sounddevice>=0.4.6
 
-# For offline speech recognition (Vosk models)
+# Offline speech recognition
 vosk>=0.3.45
 
-# For deep learning and loading Silero TTS model
+# Deep learning framework
 torch>=2.0.0
 
-# Required by torch/sounddevice for numerical operations
+# Numerical operations (torch и sounddevice зависят)
 numpy>=1.21.0
 
-# For YAML configuration files
+# Для работы с YAML файлами
 PyYAML>=5.4.1
 
+# Для fuzzy string matching
+fuzzywuzzy>=0.18.0
+
+# Для проигрывания звука (simpleaudio)
+simpleaudio>=1.0.4
+
+# Для управления звуком Windows (pycaw)
+pycaw>=20181226
+
+# Для взаимодействия с COM объектами
+comtypes>=1.1.10
+
+# Для цветного вывода в терминале
+colorama>=0.4.6
+
+# Для работы с датой и временем
+python-dotenv>=1.0.0
