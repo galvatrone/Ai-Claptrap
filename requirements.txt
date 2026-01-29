@@ -30,3 +30,6 @@ colorama>=0.4.6
 
 # Для работы с датой и временем
 python-dotenv>=1.0.0
+
+# HTTP client for external AI API calls
+requests>=2.31.0

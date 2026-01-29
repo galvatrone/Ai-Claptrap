@@ -27,3 +27,12 @@ MICROPHONE_INDEX = -1
 
 # # Токен OpenAI
 # OPENAI_TOKEN = os.getenv('OPENAI_TOKEN')
+
+# External AI API configuration
+AI_API_URL = os.getenv("AI_API_URL")
+AI_API_TOKEN = os.getenv("AI_API_TOKEN")
+AI_API_TIMEOUT = float(os.getenv("AI_API_TIMEOUT", "20"))
+AI_API_REQUEST_FIELD = os.getenv("AI_API_REQUEST_FIELD", "prompt")
+AI_API_RESPONSE_FIELD = os.getenv("AI_API_RESPONSE_FIELD", "response")
+AI_API_AUTH_HEADER = os.getenv("AI_API_AUTH_HEADER", "Authorization")
+AI_API_TOKEN_PREFIX = os.getenv("AI_API_TOKEN_PREFIX", "Bearer")

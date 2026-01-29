@@ -5,21 +5,20 @@ import json # Для работы с JSON-данными
 import re # Регулярные выражения для обработки текста
 import time # Для работы со временем
 
-# import sys
-# import os
+import sys
+import os
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# from config import VA_ALIAS  # filepath: d:\Python\New-Voice\stt\recognize.py
+# from config import VA_ALIAS  
+# filepath: d:\Python\New-Voice\stt\recognize.py
+
 VA_ALIAS_RU = ("приём",'железяка',"робот","жестянка","железный человек","железяка привет","клапт","клаптрап","клап трап")
 VA_ALIAS_EN = ("nine","claptrap","clap-trap","ClapTrap","clap trap","jeleziaka","jelezo")
-
-
-result_queue = queue.Queue()  # Очередь для результатов распознавания
 
 def load_model(language_code):
     if language_code == "en":
         return vosk.Model("model_en")
     elif language_code == "ru":
-        return vosk.Model("Vosk_models/Android/model_ru" or "model_ru_v3")
+        return vosk.Model("Vosk_models/Android/model_ru")
     elif language_code == "gr":
         return vosk.Model("model_gr")
     else:
@@ -149,7 +148,7 @@ def recognize_wake_up():
                 else:
                     partial = json.loads(rec.PartialResult()).get("partial", "")
                     if not is_active:
-                        if any(word in partial.lower() for word in VA_ALIAS_RU or VA_ALIAS_EN):
+                        if any(word in partial.lower() for word in VA_ALIAS_RU + VA_ALIAS_EN):
                             is_active=True
 
         except ValueError or Exception as err:
@@ -180,7 +179,7 @@ def recognize_continuous():
                         continue
 
                     # Удаляем слово активации из начала распознанного текста
-                    for alias in VA_ALIAS_RU or VA_ALIAS_EN:
+                    for alias in VA_ALIAS_RU + VA_ALIAS_EN:
                         if part.lower().startswith(alias):
                             part = part[len(alias):].lstrip()
                             break

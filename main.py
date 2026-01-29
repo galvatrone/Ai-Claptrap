@@ -14,6 +14,7 @@ import yaml
 from fuzzywuzzy import fuzz
 import torch
 import subprocess
+import requests
 
 import simpleaudio as sa
 
@@ -40,6 +41,61 @@ CDIR = os.path.dirname(os.path.abspath(__file__))  # Получаем текущ
 VA_CMD_LIST = yaml.safe_load(
     open(os.path.join(CDIR, 'commands.yaml'), 'rt', encoding='utf8'),
 )
+
+def build_ai_headers():
+    headers = {"Content-Type": "application/json"}
+    if config.AI_API_TOKEN:
+        token = config.AI_API_TOKEN
+        if config.AI_API_TOKEN_PREFIX:
+            token = f"{config.AI_API_TOKEN_PREFIX} {token}"
+        headers[config.AI_API_AUTH_HEADER] = token
+    return headers
+
+
+def call_ai_api(prompt: str):
+    if not config.AI_API_URL:
+        print("AI API URL not configured (AI_API_URL).")
+        return None
+
+    try:
+        resp = requests.post(
+            config.AI_API_URL,
+            json={config.AI_API_REQUEST_FIELD: prompt},
+            headers=build_ai_headers(),
+            timeout=config.AI_API_TIMEOUT,
+        )
+        resp.raise_for_status()
+    except Exception as exc:
+        print(f"AI API request failed: {exc}")
+        return None
+
+    try:
+        data = resp.json()
+    except ValueError:
+        return resp.text.strip() if resp.text else None
+
+    if isinstance(data, dict):
+        if config.AI_API_RESPONSE_FIELD in data:
+            return data[config.AI_API_RESPONSE_FIELD]
+        for key in ("text", "response", "reply", "answer", "result", "message", "текст", "ответ", "сообщение", "результат"):
+            if key in data:
+                return data[key]
+
+    if isinstance(data, str):
+        return data
+
+    return None
+
+
+def extract_ai_query(raw_voice: str):
+    if not raw_voice:
+        return ""
+
+    voice = raw_voice.strip()
+    for prefix in VA_CMD_LIST.get("ai", []):
+        if voice.startswith(prefix):
+            return voice[len(prefix):].strip(" ,.!?;:")
+    return voice
 
 
 
@@ -93,6 +149,8 @@ def recognize_cmd(cmd: str):
     rc = {'cmd': '', 'percent': 0}
     for c, v in VA_CMD_LIST.items():
         for x in v:
+            if c == "ai" and cmd.startswith(x):
+                return {'cmd': c, 'percent': 100}
             vrt = fuzz.ratio(cmd, x)
             if vrt > rc['percent']:
                 rc['cmd'] = c
@@ -185,6 +243,17 @@ def execute_cmd(cmd: str, voice: str):
     elif cmd == 'off_assistant':
         play("I'M GOING TO DIE", True)
         exit(0)
+    elif cmd == 'ai':
+        query = extract_ai_query(voice)
+        if not query:
+            play("I GOT NOTHING")
+            return False
+
+        response = call_ai_api(query)
+        if response:
+            tts.va_speak(str(response))
+        else:
+            play("I GOT NOTHING")
     else :
         play("I GOT NOTHING")
         # tts.va_speak(f"неизвестная команда")
@@ -217,7 +286,7 @@ if __name__ == "__main__":
             print("waiting for activation...")
             attemps = 0
             
-
+            fail = False
             if  recognize_wake_up():
                 last_voice_time = time.time()
                 print(f"{Fore.YELLOW} Activation: Yes, sir!{Style.RESET_ALL}")
@@ -237,15 +306,19 @@ if __name__ == "__main__":
                         commands = [cmd.strip() for cmd in re.split(r'\s+затем\s+|\s+после\s+|\s+и\s+|[.,;!?]', text) if cmd.strip()]  # используем text, а не cmd
 
                         for cmd in commands:
-                            cmd = cmd.lower()# Приводим к нижнему регистру для унификации
-                            print(f"command processing: {cmd}")  
+                            raw_cmd = cmd.lower()# Приводим к нижнему регистру для унификации
+                            print(f"processing: {raw_cmd}")  
                             pause(0.1)
-                            cmd = recognize_cmd(filter_cmd(cmd))
-                            print(cmd)
+                            cmd = recognize_cmd(filter_cmd(raw_cmd))
+                            # print(cmd)
                             cmd_obj = {'cmd': cmd['cmd'], 'percent': cmd['percent']}
 
                             print(f"{Fore.GREEN}command processing:{Style.RESET_ALL} {Fore.CYAN}{cmd_obj['cmd']}{Style.RESET_ALL} | percent: {Fore.MAGENTA}{cmd_obj['percent']}%{Style.RESET_ALL}")
-                            if not execute_cmd(cmd['cmd'],commands) or cmd['percent'] < 70:
+                            if cmd_obj['percent'] > 70:
+                                    fail=execute_cmd(cmd['cmd'],raw_cmd)
+                            else:
+                                attemps += 1
+                            if fail:
                                 attemps += 1
                         if attemps >= 2:
                             break
